@@ -1,0 +1,62 @@
+[
+  {
+    "source": "client_dash.html",
+    "title": "Client Dashboard",
+    "description": "Dashboard for clients to manage requests",
+    "content": "Client Dashboard | Contractor Pro Engineers Veedu Home My Requests Community Support Logout Welcome, Client 🙋‍♀️ Your Quote Requests Loading your requests... Submit a New Quote Request Submit Request © 2025 Engineers Veedu. All rights reserved. | Support"
+  },
+  {
+    "source": "community.html",
+    "title": "Community - Engineers Veedu",
+    "description": "Community features and project collaboration",
+    "content": "Community - BuildHub BuildHub Community Home Community Dashboard Support Login Search 👤 Guest User Please log in 📑 Saved Posts (0) Filter Posts All Posts Engineers Clients Projects Discussions Trending Topics #Architecture #Construction #Design #Renovation #Commercial Share Your Work Category: Project Showcase Discussion Question Update 📷 Add Images Cancel Post Load More Posts"
+  },
+  {
+    "source": "dash.html",
+    "title": "Contractor Dashboard",
+    "description": "Dashboard for engineers and contractors",
+    "content": "Contractor Dashboard | Contractor Pro Engineers Veedu Home Community Support Logout Welcome, Engineer 👷‍♂️ Quote Requests Loading requests... Your Projects Office Renovation In Progress Location: Chennai Deadline: Nov 28, 2025 Luxury Home Construction Pending Location: Coimbatore Deadline: Dec 15, 2025 Foundation Repair Completed Location: Madurai Delivered: Oct 2025 © 2025 Engineers Veedu. All rights reserved. | Support"
+  },
+  {
+    "source": "index.html",
+    "title": "Home - Engineers Veedu",
+    "description": "Construction contractor services, portfolio, and trust signals",
+    "content": "Professional Construction Contractor Website | Get a Quote Today Engineers Veedu Home Community Support Login Building Your Vision, Brick by Brick. Professional, reliable construction services for homeowners and businesses. High quality work, guaranteed. START YOUR PROJECT & GET A FREE QUOTE Why Choose Us? Certified & Verified Fully certified and insured, ensuring peace of mind for every project. Fast Load Time Optimized platform for a seamless user experience. 10+ Years Experience Proven track record of delivering high-quality residential and commercial construction. Our Recent Work Highlighting completed projects that showcase our quality and expertise. Commercial Buildout Modern office space delivered on time and within budget. Luxury Home Renovation Full interior and exterior remodeling for a residential client. Foundation & Structurals Expert structural work ensuring long-term stability. View Full Portfolio What Our Clients Say \"The team was professional and the project was completed with exceptional quality. Highly recommend!\" - Homeowner. © 2025 Engineers Veedu. All rights reserved. | Support"
+  },
+  {
+    "source": "login.html",
+    "title": "Login - Engineers Veedu",
+    "description": "User login page",
+    "content": "Contractor Login | Contractor Pro Engineers Veedu Home Sign In I am a Contractor / Engineer Client Login Forgot Password? Not registered? Request Access © 2025 Engineers Veedu. All rights reserved. | Support"
+  },
+  {
+    "source": "register.html",
+    "title": "Register - Engineers Veedu",
+    "description": "User registration page",
+    "content": "Register | Contractor Pro Engineers Veedu Home Login Sign Up I am a Contractor / Engineer Client Register Already have an account? Login here © 2025 Engineers Veedu. All rights reserved. | Support"
+  },
+  {
+    "source": "support.html",
+    "title": "Support - Engineers Veedu",
+    "description": "Customer support, contact information, and FAQ",
+    "content": "Customer Support | Contractor Pro Engineers Veedu Home Support Community Logout Customer Support We're here to help with your construction needs. Get in touch with our support team. Contact Us Reach out to our customer service team for immediate assistance. Phone: +1 (555) 123-4567 Email: support@contractorpro.com Hours: Mon-Fri 8AM-6PM EST Live Chat Chat with a support representative online. Start Chat FAQ Find answers to common questions. How do I submit a quote request? Fill out the form on our homepage or contact us directly. What areas do you serve? We serve residential and commercial clients in Chennai, Coimbatore, and Madurai regions. How long does a project take? Project timelines vary based on scope. We'll provide estimates during consultation. Send us a Message Select Subject Quote Request Project Update Billing Question Other Send Message Your message is secure and will be responded to within 24 hours. © 2025 Engineers Veedu. All rights reserved. | Support"
+  },
+  {
+    "source": "company_info",
+    "title": "Company Overview",
+    "description": "Engineers Veedu company information",
+    "content": "\n            Engineers Veedu is a professional construction contractor with over 10 years of experience.\n            Services include: residential construction, commercial buildouts, renovations, foundation work,\n            and structural engineering. The company is certified and insured. Service areas include\n            Chennai, Coimbatore, and Madurai regions.\n            "
+  },
+  {
+    "source": "contact_info",
+    "title": "Contact Information",
+    "description": "How to contact Engineers Veedu",
+    "content": "\n            Contact Information:\n            - Phone: +1 (555) 123-4567\n            - Email: support@contractorpro.com\n            - Business Hours: Monday-Friday 8AM-6PM EST\n            "
+  },
+  {
+    "source": "projects",
+    "title": "Portfolio",
+    "description": "Recent construction projects",
+    "content": "\n            Recent Projects:\n            1. Commercial Buildout - Modern office space delivered on time and within budget\n            2. Luxury Home Renovation - Full interior and exterior remodeling\n            3. Foundation & Structurals - Expert structural work ensuring long-term stability\n            "
+  }
+]
