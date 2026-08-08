@@ -39,4 +39,6 @@ desktop.ini
 dist/
 build/
 *.egg-info/
-node_modules
+
+#Dependies
+node_modules/
