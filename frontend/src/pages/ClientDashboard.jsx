@@ -306,11 +306,15 @@ const ClientDashboard = () => {
                                                     <span className={`text-[11px] font-bold px-3 py-1 rounded-full border ${
                                                         req.status === 'accepted' 
                                                             ? 'bg-green-50 text-green-700 border-green-200' 
-                                                            : req.status === 'declined'
+                                                            : (req.status === 'rejected' || req.status === 'declined')
                                                             ? 'bg-red-50 text-red-700 border-red-200'
                                                             : 'bg-amber-50 text-amber-700 border-amber-200'
                                                     }`}>
-                                                        {req.status === 'accepted' ? '✓ Accepted by Contractor' : '⏳ Pending Review'}
+                                                        {req.status === 'accepted' 
+                                                            ? '✓ Accepted by Contractor' 
+                                                            : (req.status === 'rejected' || req.status === 'declined')
+                                                            ? '✕ Rejected by Contractor' 
+                                                            : '⏳ Pending Review'}
                                                     </span>
                                                 </div>
 
@@ -330,6 +334,25 @@ const ClientDashboard = () => {
                                                     <div><strong>Amount:</strong> <span className="font-bold text-emerald-700">{req.amount}</span></div>
                                                     <div><strong>Building Type:</strong> <span className="font-semibold text-gray-800">{req.buildingType}</span></div>
                                                     <div><strong>Required Details:</strong> {req.requiredDetails || req.siteDetails || req.anotherDetails}</div>
+                                                    
+                                                    {/* Rejection Reason Display */}
+                                                    {(req.status === 'rejected' || req.status === 'declined') && req.rejectionReason && (
+                                                        <div className="mt-2.5 p-2.5 bg-red-50/80 border border-red-200 rounded-lg text-red-800">
+                                                            <strong className="block text-red-900 font-bold mb-0.5">Reason for Rejection:</strong>
+                                                            <span className="italic">"{req.rejectionReason}"</span>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Assigned Site Engineer Display */}
+                                                    {req.status === 'accepted' && req.assignedEngineerName && (
+                                                        <div className="mt-2.5 p-2.5 bg-emerald-50/80 border border-emerald-200 rounded-lg text-emerald-800 flex items-center gap-2">
+                                                            <HardHat size={15} className="text-emerald-700 shrink-0" />
+                                                            <div>
+                                                                <strong className="block text-emerald-900 font-bold text-[11px]">Assigned Site Engineer:</strong>
+                                                                <span className="font-semibold">{req.assignedEngineerName}</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
 

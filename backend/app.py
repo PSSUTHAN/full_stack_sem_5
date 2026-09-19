@@ -124,6 +124,44 @@ def init_db():
             except sqlite3.OperationalError:
                 pass
 
+        for col_name, col_def in [
+            ("rejection_reason", "TEXT"),
+            ("assigned_engineer_id", "INTEGER")
+        ]:
+            try:
+                cursor.execute(f"ALTER TABLE client_requests ADD COLUMN {col_name} {col_def}")
+            except sqlite3.OperationalError:
+                pass
+
+        for col_name, col_def in [
+            ("contractor_id", "INTEGER"),
+            ("name", "TEXT"),
+            ("phone", "TEXT"),
+            ("specialization", "TEXT"),
+            ("status", "TEXT DEFAULT 'active'")
+        ]:
+            try:
+                cursor.execute(f"ALTER TABLE users ADD COLUMN {col_name} {col_def}")
+            except sqlite3.OperationalError:
+                pass
+
+        # Link default demo site engineer to default demo contractor if not linked
+        try:
+            cursor.execute("SELECT id FROM users WHERE email = 'contractor@engineersveedu.com'")
+            c_row = cursor.fetchone()
+            if c_row:
+                c_id = c_row[0]
+                cursor.execute("""
+                    UPDATE users 
+                    SET name = 'Er. Ramesh Kumar, M.E.',
+                        phone = '+91 98401 28472',
+                        specialization = 'Lead Structural Consultant & RCC Specialist',
+                        contractor_id = ?
+                    WHERE email = 'engineer@engineersveedu.com' AND (contractor_id IS NULL OR name IS NULL OR name = '')
+                """, (c_id,))
+        except Exception as e:
+            print("Notice on engineer backfill:", e)
+
         # Seed default demo users if users table is empty
         cursor.execute("SELECT COUNT(*) FROM users")
         if cursor.fetchone()[0] == 0:
@@ -562,8 +600,14 @@ def get_profile():
 def get_users_by_role():
     """Get users filtered by role for project assignment dropdowns."""
     target_role = request.args.get('role')
+    contractor_id = request.args.get('contractor_id')
     with sqlite3.connect(DB_NAME) as conn:
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
+        query = "SELECT id, email, role, contractor_id, name, phone, specialization FROM users"
+        params = []
+        conditions = []
+        
         if target_role:
             # Map builder to contractor for backwards compat
             search_roles = [target_role]
@@ -573,13 +617,147 @@ def get_users_by_role():
             cursor.execute(f"SELECT id, email, role FROM users WHERE role IN ({placeholders})", search_roles)
         else:
             cursor.execute("SELECT id, email, role FROM users")
+            conditions.append(f"role IN ({placeholders})")
+            params.extend(search_roles)
+            
+        if contractor_id and target_role == 'site_engineer':
+            try:
+                cid = int(contractor_id)
+                conditions.append("(contractor_id = ? OR contractor_id IS NULL)")
+                params.append(cid)
+            except ValueError:
+                pass
+                
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+            
+        query += " ORDER BY id ASC"
+        cursor.execute(query, params)
         rows = cursor.fetchall()
     
     users = []
     for r in rows:
         r_role = 'contractor' if r[2] == 'builder' else r[2]
         users.append({"id": r[0], "email": r[1], "role": r_role})
+        d = dict(r)
+        if d['role'] == 'builder':
+            d['role'] = 'contractor'
+        if not d.get('name'):
+            d['name'] = d['email'].split('@')[0]
+        users.append(d)
     return jsonify({"users": users})
+
+
+# --- CONTRACTOR SITE ENGINEER MANAGEMENT ENDPOINTS ---
+
+@app.route('/api/contractors/<int:contractor_id>/engineers', methods=['GET'])
+def get_contractor_engineers(contractor_id):
+    """
+    Get all site engineers managed under this contractor,
+    including full details of the project(s) assigned to each engineer.
+    """
+    with sqlite3.connect(DB_NAME) as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        # Select site engineers belonging to this contractor or general engineers
+        cursor.execute('''
+            SELECT id, email, role, contractor_id, name, phone, specialization, status, created_at
+            FROM users
+            WHERE role = 'site_engineer' 
+              AND (contractor_id = ? OR contractor_id IS NULL)
+              AND (status IS NULL OR status != 'inactive')
+            ORDER BY id ASC
+        ''', (contractor_id,))
+        engineers = [dict(r) for r in cursor.fetchall()]
+        
+        # For each engineer, fetch full details of project(s) assigned to them
+        for eng in engineers:
+            cursor.execute('''
+                SELECT id, name, location, stage, progress, status, budget, target_date, start_date
+                FROM projects
+                WHERE site_engineer_id = ?
+                ORDER BY id DESC
+            ''', (eng['id'],))
+            eng['projects'] = [dict(p) for p in cursor.fetchall()]
+            eng['active_projects_count'] = len(eng['projects'])
+            if not eng.get('name'):
+                eng['name'] = eng['email'].split('@')[0].capitalize() + ' (Site Engineer)'
+            if not eng.get('specialization'):
+                eng['specialization'] = 'Civil Site QA & Supervision'
+
+    return jsonify({"engineers": engineers})
+
+
+@app.route('/api/contractors/<int:contractor_id>/engineers', methods=['POST'])
+def create_contractor_engineer(contractor_id):
+    """
+    Contractor creates and registers a new site engineer under their firm.
+    """
+    data = request.json or {}
+    email = (data.get('email') or '').strip().lower()
+    name = (data.get('name') or '').strip()
+    password = data.get('password') or 'password123'
+    phone = (data.get('phone') or '').strip()
+    specialization = (data.get('specialization') or 'Civil Site QA & Supervision').strip()
+    
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+    if not name:
+        name = email.split('@')[0].capitalize() + ' (Site Engineer)'
+        
+    hashed_password = generate_password_hash(password)
+    
+    try:
+        with sqlite3.connect(DB_NAME) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO users (email, password, role, contractor_id, name, phone, specialization, status)
+                VALUES (?, ?, 'site_engineer', ?, ?, ?, ?, 'active')
+            ''', (email, hashed_password, contractor_id, name, phone, specialization))
+            conn.commit()
+            engineer_id = cursor.lastrowid
+            
+        return jsonify({
+            "message": "Site engineer created successfully",
+            "engineer": {
+                "id": engineer_id,
+                "email": email,
+                "name": name,
+                "phone": phone,
+                "specialization": specialization,
+                "contractor_id": contractor_id,
+                "projects": [],
+                "active_projects_count": 0
+            }
+        }), 201
+    except sqlite3.IntegrityError:
+        return jsonify({"error": f"An account with email '{email}' already exists"}), 409
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/contractors/<int:contractor_id>/engineers/<int:engineer_id>', methods=['DELETE'])
+def delete_contractor_engineer(contractor_id, engineer_id):
+    """
+    Contractor removes a site engineer. Unlinks any assigned projects safely.
+    """
+    with sqlite3.connect(DB_NAME) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, email FROM users WHERE id = ? AND role = 'site_engineer'", (engineer_id,))
+        eng = cursor.fetchone()
+        if not eng:
+            return jsonify({"error": "Site engineer not found"}), 404
+        
+        # Unassign any active projects assigned to this engineer
+        cursor.execute("UPDATE projects SET site_engineer_id = NULL WHERE site_engineer_id = ?", (engineer_id,))
+        
+        # Delete user record from database
+        cursor.execute("DELETE FROM users WHERE id = ?", (engineer_id,))
+        conn.commit()
+        
+    return jsonify({"message": f"Site engineer '{eng[1]}' removed successfully"}), 200
+
 
 # --- PROJECTS ENDPOINTS ---
 
@@ -1344,14 +1522,28 @@ def create_client_request():
 
 @app.route('/api/client-requests/<int:req_id>/status', methods=['PATCH'])
 def update_client_request_status(req_id):
-    """Update status of a client request."""
+    """Update status of a client request (e.g. accepted, rejected) along with rejection_reason or assigned_engineer_id."""
     data = request.json or {}
     status = data.get('status', 'accepted')
+    rejection_reason = data.get('rejection_reason') or data.get('rejectionReason')
+    assigned_engineer_id = data.get('assigned_engineer_id') or data.get('assignedEngineerId')
     with sqlite3.connect(DB_NAME) as conn:
         cursor = conn.cursor()
-        cursor.execute("UPDATE client_requests SET status = ? WHERE id = ?", (status, req_id))
+        cursor.execute("""
+            UPDATE client_requests 
+            SET status = ?, 
+                rejection_reason = COALESCE(?, rejection_reason), 
+                assigned_engineer_id = COALESCE(?, assigned_engineer_id) 
+            WHERE id = ?
+        """, (status, rejection_reason, assigned_engineer_id, req_id))
         conn.commit()
-        return jsonify({"message": f"Request status updated to {status}", "id": req_id, "status": status})
+        return jsonify({
+            "message": f"Request status updated to {status}",
+            "id": req_id,
+            "status": status,
+            "rejection_reason": rejection_reason,
+            "assigned_engineer_id": assigned_engineer_id
+        })
 
 
 

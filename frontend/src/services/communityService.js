@@ -830,13 +830,59 @@ export const communityService = {
         return newRequest;
     },
 
-    async updateSiteRequestStatus(requestId, status) {
+    async updateSiteRequestStatus(requestId, status, extraData = {}) {
         await new Promise(r => setTimeout(r, 120));
         const requests = getStorageItem(STORAGE_KEY_SITE_REQUESTS, SEED_SITE_REQUESTS);
         const index = requests.findIndex(r => r.id === requestId);
         if (index !== -1) {
-            requests[index].status = status;
+            requests[index] = {
+                ...requests[index],
+                status,
+                ...extraData
+            };
             setStorageItem(STORAGE_KEY_SITE_REQUESTS, requests);
+
+            // Generate notification for the client
+            const notifs = getStorageItem(STORAGE_KEY_NOTIFICATIONS, SEED_NOTIFICATIONS);
+            if (status === 'rejected' || status === 'declined') {
+                const rejNotif = {
+                    id: `notif-${Date.now()}`,
+                    type: 'request_declined',
+                    actor: {
+                        id: 'contractor-lead',
+                        name: requests[index].engineerName || 'General Contractor',
+                        avatar: requests[index].engineerAvatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+                        headline: 'Turnkey General Contractor'
+                    },
+                    title: `declined your construction request for ${requests[index].buildingType}`,
+                    description: `Reason: ${extraData.rejectionReason || 'Project parameters currently cannot be fulfilled.'}`,
+                    targetId: requests[index].id,
+                    targetType: 'request',
+                    isRead: false,
+                    createdAt: 'Just now'
+                };
+                setStorageItem(STORAGE_KEY_NOTIFICATIONS, [rejNotif, ...notifs]);
+            } else if (status === 'accepted') {
+                const acceptNotif = {
+                    id: `notif-${Date.now()}`,
+                    type: 'request_accepted',
+                    actor: {
+                        id: 'contractor-lead',
+                        name: requests[index].engineerName || 'General Contractor',
+                        avatar: requests[index].engineerAvatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+                        headline: 'Turnkey General Contractor'
+                    },
+                    title: extraData.assignedEngineerName 
+                        ? `accepted your request & assigned Site Engineer ${extraData.assignedEngineerName}!`
+                        : `accepted your construction request for ${requests[index].buildingType}`,
+                    description: `Site: ${requests[index].siteAddress} • Budget: ${requests[index].amount}`,
+                    targetId: requests[index].id,
+                    targetType: 'project',
+                    isRead: false,
+                    createdAt: 'Just now'
+                };
+                setStorageItem(STORAGE_KEY_NOTIFICATIONS, [acceptNotif, ...notifs]);
+            }
 
             // Also sync to backend
             try {
@@ -846,7 +892,11 @@ export const communityService = {
                     fetch(`${API_BASE}/api/client-requests/${numId}/status`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ status })
+                        body: JSON.stringify({
+                            status,
+                            rejection_reason: extraData.rejectionReason,
+                            assigned_engineer_id: extraData.assignedEngineerId
+                        })
                     }).catch(() => {});
                 }
             } catch {
