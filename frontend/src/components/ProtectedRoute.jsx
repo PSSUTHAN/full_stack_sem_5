@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 
-const ProtectedRoute = ({ children, role }) => {
+const ProtectedRoute = ({ children, role, allowedRoles }) => {
     const user = (() => {
         try {
             const userJson = localStorage.getItem('user');
@@ -16,18 +16,22 @@ const ProtectedRoute = ({ children, role }) => {
         return <Navigate to="/login" replace />;
     }
 
-    // Default to 'client' if role is missing (for old sessions)
-    const userRole = user.role || 'client';
+    let userRole = user.role || 'client';
+    if (userRole === 'builder') {
+        userRole = 'contractor';
+    }
 
-    if (role && userRole !== role) {
-        // Prevent infinite loop: Only redirect if we're actually switching to the OTHER known role
-        if (userRole === 'builder' && role !== 'builder') {
-            return <Navigate to="/builder-dashboard" replace />;
+    // Determine target allowed roles
+    const targetRoles = allowedRoles || (role ? [role === 'builder' ? 'contractor' : role] : null);
+
+    if (targetRoles && !targetRoles.includes(userRole)) {
+        if (userRole === 'contractor') {
+            return <Navigate to="/contractor-dashboard" replace />;
         }
-        if (userRole === 'client' && role !== 'client') {
-            return <Navigate to="/client-dashboard" replace />;
+        if (userRole === 'site_engineer') {
+            return <Navigate to="/engineer-dashboard" replace />;
         }
-        // If role is unknown or we're already on the "best guess" page, just don't redirect again
+        return <Navigate to="/client-dashboard" replace />;
     }
 
     return children;

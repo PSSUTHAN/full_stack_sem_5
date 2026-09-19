@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Chatbot from './components/Chatbot';
 
-import Home from './pages/Home';
-import About from './pages/About';
-import Services from './pages/Services';
 import Projects from './pages/Projects';
 import Contact from './pages/Contact';
 import Community from './pages/Community';
@@ -15,6 +12,9 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ClientDashboard from './pages/ClientDashboard';
 import BuilderDashboard from './pages/BuilderDashboard';
+import ContractorDashboard from './pages/ContractorDashboard';
+import SiteEngineerDashboard from './pages/SiteEngineerDashboard';
+import ProjectTrackerPage from './pages/ProjectTrackerPage';
 
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -46,36 +46,88 @@ function App() {
 
     return (
         <Router>
-            <div className="flex flex-col min-h-screen">
+            <div className="flex flex-col min-h-screen bg-white text-gray-800">
                 <Header user={user} />
 
                 <main className="flex-grow">
                     <Routes>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/about" element={<About />} />
-                        <Route path="/services" element={<Services />} />
-                        <Route path="/projects" element={<Projects />} />
-                        <Route path="/contact" element={<Contact />} />
-                        <Route path="/community" element={<Community />} />
-                        <Route path="/support" element={<Support />} />
-                        <Route path="/login" element={<Login />} />
+                        {/* Initial Launch: Go to Login first; if already authenticated, go to Community */}
+                        <Route 
+                            path="/" 
+                            element={user ? <Navigate to="/community" replace /> : <Navigate to="/login" replace />} 
+                        />
+                        <Route 
+                            path="/login" 
+                            element={user ? <Navigate to="/community" replace /> : <Login />} 
+                        />
                         <Route path="/register" element={<Register />} />
 
+                        {/* Community Page (Central hub after login) */}
+                        <Route 
+                            path="/community" 
+                            element={
+                                <ProtectedRoute allowedRoles={['client', 'contractor', 'site_engineer', 'builder']}>
+                                    <Community />
+                                </ProtectedRoute>
+                            } 
+                        />
+
+                        <Route path="/projects" element={<Projects />} />
+                        <Route path="/contact" element={<Contact />} />
+                        <Route path="/support" element={<Support />} />
+
+                        {/* Client Route */}
                         <Route
                             path="/client-dashboard"
                             element={
-                                <ProtectedRoute role="client">
+                                <ProtectedRoute allowedRoles={['client']}>
                                     <ClientDashboard />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        {/* Contractor Routes */}
+                        <Route
+                            path="/contractor-dashboard"
+                            element={
+                                <ProtectedRoute allowedRoles={['contractor', 'builder']}>
+                                    <ContractorDashboard />
                                 </ProtectedRoute>
                             }
                         />
                         <Route
                             path="/builder-dashboard"
                             element={
-                                <ProtectedRoute role="builder">
-                                    <BuilderDashboard />
+                                <ProtectedRoute allowedRoles={['contractor', 'builder']}>
+                                    <ContractorDashboard />
                                 </ProtectedRoute>
                             }
+                        />
+
+                        {/* Site Engineer Route */}
+                        <Route
+                            path="/engineer-dashboard"
+                            element={
+                                <ProtectedRoute allowedRoles={['site_engineer']}>
+                                    <SiteEngineerDashboard />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        {/* Standalone Project Tracking Route (Accessible to all 3 connected roles) */}
+                        <Route
+                            path="/projects/:id/track"
+                            element={
+                                <ProtectedRoute allowedRoles={['client', 'contractor', 'site_engineer', 'builder']}>
+                                    <ProjectTrackerPage />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        {/* Fallback route: redirect to Community if logged in, or Login */}
+                        <Route
+                            path="*"
+                            element={user ? <Navigate to="/community" replace /> : <Navigate to="/login" replace />}
                         />
                     </Routes>
                 </main>

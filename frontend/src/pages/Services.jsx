@@ -75,10 +75,10 @@ const Services = () => {
                 <div className="container mx-auto px-4">
                     <h2 className="text-3xl font-bold mb-6">Start Your Next Project Today</h2>
                     <p className="max-w-xl mx-auto mb-8 text-blue-100">
-                        Contact us to discuss your vision and receive a complimentary quote.
+                        Contact us to discuss your vision and get started with our expert team.
                     </p>
                     <a href="/contact" className="inline-block bg-accent text-white px-8 py-3 rounded-lg font-bold hover:bg-orange-600 transition-colors shadow-lg">
-                        Get a Free Quote
+                        Contact Us
                     </a>
                 </div>
             </section>

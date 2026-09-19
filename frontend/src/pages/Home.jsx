@@ -11,7 +11,7 @@ const Home = () => {
                     <h1 className="text-5xl font-bold mb-4 animate-fade-in text-white text-shadow">Building Your Vision, Brick by Brick.</h1>
                     <p className="text-xl mb-8 max-w-2xl mx-auto drop-shadow-md">Professional, reliable construction services for homeowners and businesses. High quality work, guaranteed.</p>
                     <a href="/contact" className="bg-accent text-white font-bold py-3 px-8 rounded-lg text-lg hover:bg-orange-600 transition-transform transform hover:scale-105 shadow-lg inline-block">
-                        START YOUR PROJECT & GET A FREE QUOTE
+                        START YOUR PROJECT
                     </a>
                 </div>
             </section>
@@ -119,32 +119,6 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* Contact Form Placeholder */}
-            <section id="contact" className="py-16 bg-primary text-white text-center">
-                <div className="container mx-auto px-4">
-                    <h2 className="text-3xl font-bold mb-8">Get a Free Quote</h2>
-                    <div className="max-w-2xl mx-auto bg-white text-gray-800 p-8 rounded-xl shadow-2xl">
-                        <form className="space-y-4 text-left">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Name</label>
-                                <input type="text" className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-accent outline-none" placeholder="Your Name" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Email</label>
-                                <input type="email" className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-accent outline-none" placeholder="your@email.com" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Project Details</label>
-                                <textarea className="w-full p-3 border rounded-lg h-32 focus:ring-2 focus:ring-accent outline-none" placeholder="Tell us about your project..."></textarea>
-                            </div>
-                            <button type="submit" className="w-full bg-accent text-white font-bold py-3 rounded-lg hover:bg-orange-600 transition-colors">
-                                Send Request
-                            </button>
-                            <p className="text-xs text-gray-500 mt-2 text-center">We respect your privacy.</p>
-                        </form>
-                    </div>
-                </div>
-            </section>
 
         </div>
     );
