@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-    HardHat, LogOut, Plus, Calendar, MapPin, CheckCircle, 
-    ArrowRight, Activity, CloudSun, AlertTriangle, Users, ShieldCheck, X,
+    HardHat, LogOut, Plus, Calendar, MapPin, 
+    ArrowRight, CloudSun, Users, X,
     UploadCloud, Trash2
 } from 'lucide-react';
 import ProjectTracker from '../components/ProjectTracker';
+import { authFetch } from '../services/apiClient';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -66,10 +67,10 @@ const SiteEngineerDashboard = () => {
         }
     }, [user, navigate]);
 
-    const fetchAssignedProjects = async () => {
+    const fetchAssignedProjects = useCallback(async () => {
         try {
             setLoading(true);
-            const res = await fetch(`${API_BASE}/api/projects?user_id=${user?.id}&role=site_engineer`);
+            const res = await authFetch(`${API_BASE}/api/projects?user_id=${user?.id}&role=site_engineer`);
             if (res.ok) {
                 const data = await res.json();
                 const projs = data.projects || [];
@@ -84,13 +85,13 @@ const SiteEngineerDashboard = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user, quickLogProjectId]);
 
     useEffect(() => {
         if (user) {
             fetchAssignedProjects();
         }
-    }, [user]);
+    }, [user, fetchAssignedProjects]);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -117,7 +118,7 @@ const SiteEngineerDashboard = () => {
             if (quickLogImageFile) {
                 const formData = new FormData();
                 formData.append('file', quickLogImageFile);
-                const uploadRes = await fetch(`${API_BASE}/api/upload`, {
+                const uploadRes = await authFetch(`${API_BASE}/api/upload`, {
                     method: 'POST',
                     body: formData
                 });
@@ -132,7 +133,7 @@ const SiteEngineerDashboard = () => {
                 }
             }
 
-            const res = await fetch(`${API_BASE}/api/projects/${quickLogProjectId}/daily-logs`, {
+            const res = await authFetch(`${API_BASE}/api/projects/${quickLogProjectId}/daily-logs`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -330,13 +331,13 @@ const SiteEngineerDashboard = () => {
                                                     <div>
                                                         <span className="text-gray-500 block text-[10px] uppercase font-bold">Client (Owner)</span>
                                                         <span className="text-gray-800 font-semibold truncate block">
-                                                            {proj.client_email || 'client@demo.com'}
+                                                            {proj.client_email || 'Not Assigned'}
                                                         </span>
                                                     </div>
                                                     <div>
                                                         <span className="text-gray-500 block text-[10px] uppercase font-bold">Contractor Lead</span>
                                                         <span className="text-purple-700 font-semibold truncate block">
-                                                            {proj.contractor_email || 'contractor@engineersveedu.com'}
+                                                            {proj.contractor_email || 'Not Assigned'}
                                                         </span>
                                                     </div>
                                                 </div>

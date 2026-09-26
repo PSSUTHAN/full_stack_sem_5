@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Building2, MapPin, DollarSign, FileText, CheckCircle2, Send, HardHat, Calendar, Info } from 'lucide-react';
+import { X, Building2, MapPin, DollarSign, CheckCircle2, Send, Info } from 'lucide-react';
 
 const BUILDING_TYPES = [
     'Residential Villa / Individual House',

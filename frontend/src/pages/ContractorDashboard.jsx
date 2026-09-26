@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
     ShieldCheck, LogOut, Plus, Users, HardHat, Briefcase, 
-    Calendar, MapPin, DollarSign, Activity, CheckCircle, ArrowRight, X,
-    ClipboardList, Building2, Clock, AlertCircle, XCircle, UserCheck, AlertTriangle,
+    MapPin, DollarSign, Activity, CheckCircle, ArrowRight, X,
+    ClipboardList, Building2, AlertCircle, XCircle, UserCheck, AlertTriangle,
     UserPlus, Trash2, Phone, Mail, Award, ChevronRight
 } from 'lucide-react';
 import ProjectTracker from '../components/ProjectTracker';
 import { communityService } from '../services/communityService';
+import { authFetch } from '../services/apiClient';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -57,10 +58,10 @@ const ContractorDashboard = () => {
     }, [user, navigate]);
 
     // Fetch projects for this contractor
-    const fetchProjects = async () => {
+    const fetchProjects = useCallback(async () => {
         try {
             setLoading(true);
-            const res = await fetch(`${API_BASE}/api/projects?user_id=${user?.id}&role=contractor`);
+            const res = await authFetch(`${API_BASE}/api/projects?user_id=${user?.id}&role=contractor`);
             if (res.ok) {
                 const data = await res.json();
                 setProjects(data.projects || []);
@@ -70,14 +71,14 @@ const ContractorDashboard = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user]);
 
     // Fetch clients and site engineers for assignment dropdowns
     const fetchUsersForAssignment = async () => {
         try {
             const [cRes, eRes] = await Promise.all([
-                fetch(`${API_BASE}/api/users/by-role?role=client`),
-                fetch(`${API_BASE}/api/users/by-role?role=site_engineer`)
+                authFetch(`${API_BASE}/api/users/by-role?role=client`),
+                authFetch(`${API_BASE}/api/users/by-role?role=site_engineer`)
             ]);
             if (cRes.ok) {
                 const cData = await cRes.json();
@@ -114,11 +115,11 @@ const ContractorDashboard = () => {
     const [deletingEngineer, setDeletingEngineer] = useState(false);
 
     // Fetch site engineers under this contractor with their assigned projects
-    const fetchContractorEngineers = async () => {
+    const fetchContractorEngineers = useCallback(async () => {
         if (!user?.id) return;
         try {
             setLoadingEngineers(true);
-            const res = await fetch(`${API_BASE}/api/contractors/${user.id}/engineers`);
+            const res = await authFetch(`${API_BASE}/api/contractors/${user.id}/engineers`);
             if (res.ok) {
                 const data = await res.json();
                 setContractorEngineers(data.engineers || []);
@@ -131,7 +132,7 @@ const ContractorDashboard = () => {
         } finally {
             setLoadingEngineers(false);
         }
-    };
+    }, [user]);
 
     // Create a new site engineer under this contractor
     const handleCreateEngineer = async (e) => {
@@ -142,7 +143,7 @@ const ContractorDashboard = () => {
         }
         try {
             setCreatingEngineer(true);
-            const res = await fetch(`${API_BASE}/api/contractors/${user.id}/engineers`, {
+            const res = await authFetch(`${API_BASE}/api/contractors/${user.id}/engineers`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newEngineerForm)
@@ -175,7 +176,7 @@ const ContractorDashboard = () => {
         if (!removingEngineer) return;
         try {
             setDeletingEngineer(true);
-            const res = await fetch(`${API_BASE}/api/contractors/${user.id}/engineers/${removingEngineer.id}`, {
+            const res = await authFetch(`${API_BASE}/api/contractors/${user.id}/engineers/${removingEngineer.id}`, {
                 method: 'DELETE'
             });
             if (res.ok) {
@@ -199,7 +200,7 @@ const ContractorDashboard = () => {
     const [incomingRequests, setIncomingRequests] = useState([]);
     const [loadingRequests, setLoadingRequests] = useState(false);
 
-    const fetchIncomingRequests = async () => {
+    const fetchIncomingRequests = useCallback(async () => {
         try {
             setLoadingRequests(true);
             const reqs = await communityService.fetchSiteRequests();
@@ -216,7 +217,7 @@ const ContractorDashboard = () => {
         } finally {
             setLoadingRequests(false);
         }
-    };
+    }, [user]);
 
     // Rejection state
     const [rejectingRequest, setRejectingRequest] = useState(null);
@@ -302,7 +303,7 @@ const ContractorDashboard = () => {
             const engineerName = selectedEng ? (selectedEng.email || selectedEng.name) : 'Site Engineer';
 
             // 1. Create the project in backend
-            const res = await fetch(`${API_BASE}/api/projects`, {
+            const res = await authFetch(`${API_BASE}/api/projects`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -341,19 +342,6 @@ const ContractorDashboard = () => {
         }
     };
 
-    const handleAcceptRequest = async (reqId) => {
-        const updated = await communityService.updateSiteRequestStatus(reqId, 'accepted');
-        setIncomingRequests(prev => prev.map(r => r.id === reqId ? updated : r));
-    };
-
-    const handleDeclineRequest = (req) => {
-        handleOpenRejectModal(req);
-    };
-
-    const handleConvertToProject = (req) => {
-        handleOpenAssignModal(req);
-    };
-
     useEffect(() => {
         if (user) {
             fetchProjects();
@@ -361,7 +349,7 @@ const ContractorDashboard = () => {
             fetchIncomingRequests();
             fetchContractorEngineers();
         }
-    }, [user]);
+    }, [user, fetchProjects, fetchIncomingRequests, fetchContractorEngineers]);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -379,7 +367,7 @@ const ContractorDashboard = () => {
 
         try {
             setCreatingProject(true);
-            const res = await fetch(`${API_BASE}/api/projects`, {
+            const res = await authFetch(`${API_BASE}/api/projects`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -933,13 +921,13 @@ const ContractorDashboard = () => {
                                                     <div>
                                                         <span className="text-gray-500 block text-[10px] uppercase font-bold">Client</span>
                                                         <span className="text-gray-800 font-semibold truncate block">
-                                                            {proj.client_email || 'client@demo.com'}
+                                                            {proj.client_email || 'Not Assigned'}
                                                         </span>
                                                     </div>
                                                     <div>
                                                         <span className="text-gray-500 block text-[10px] uppercase font-bold">Site Engineer</span>
                                                         <span className="text-amber-700 font-semibold truncate block">
-                                                            {proj.site_engineer_email || 'engineer@engineersveedu.com'}
+                                                            {proj.site_engineer_email || 'Not Assigned'}
                                                         </span>
                                                     </div>
                                                 </div>

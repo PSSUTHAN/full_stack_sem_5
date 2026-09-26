@@ -3,10 +3,11 @@
  * Ready to be swapped with backend REST/GraphQL endpoints without changing component APIs.
  */
 
+import { authFetch } from './apiClient';
+
 const STORAGE_KEY_POSTS = 'engineersveedu_community_posts_v1';
 const STORAGE_KEY_MEMBERS = 'engineersveedu_community_members_v1';
 const STORAGE_KEY_SPACES = 'engineersveedu_community_spaces_v1';
-const STORAGE_KEY_REQUESTS = 'engineersveedu_community_requests_v1';
 const STORAGE_KEY_NOTIFICATIONS = 'engineersveedu_community_notifications_v1';
 const STORAGE_KEY_SITE_REQUESTS = 'engineersveedu_community_site_requests_v1';
 
@@ -770,7 +771,7 @@ export const communityService = {
             engineerAvatar: targetEngineer.avatar,
             clientId: currentUser?.id || 'client-user',
             clientName: requestInput.name || currentUser?.name || 'Client',
-            clientEmail: currentUser?.email || 'client@demo.com',
+            clientEmail: currentUser?.email || '',
             name: requestInput.name,
             siteAddress: requestInput.siteAddress,
             amount: requestInput.amount,
@@ -806,10 +807,10 @@ export const communityService = {
         };
         setStorageItem(STORAGE_KEY_NOTIFICATIONS, [newNotif, ...notifs]);
 
-        // Also sync to backend SQLite database if available
+        // Also sync to backend MySQL database if available
         try {
             const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-            fetch(`${API_BASE}/api/client-requests`, {
+            authFetch(`${API_BASE}/api/client-requests`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -889,7 +890,7 @@ export const communityService = {
                 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
                 const numId = parseInt(String(requestId).replace('req-', ''), 10);
                 if (!isNaN(numId)) {
-                    fetch(`${API_BASE}/api/client-requests/${numId}/status`, {
+                    authFetch(`${API_BASE}/api/client-requests/${numId}/status`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({

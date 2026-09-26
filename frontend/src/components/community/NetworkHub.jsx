@@ -1,5 +1,5 @@
 import React from 'react';
-import { UserPlus, Check, X, Users, ArrowRight, ShieldCheck } from 'lucide-react';
+import { UserPlus, Check, Users } from 'lucide-react';
 
 const NetworkHub = ({ members = [], onConnect, onAcceptRequest, onIgnoreRequest, onSelectMember }) => {
     // Partition members into pending received and recommendations

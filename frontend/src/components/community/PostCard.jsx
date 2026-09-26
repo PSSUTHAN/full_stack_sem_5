@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
     ThumbsUp, MessageSquare, Share2, Send, Bookmark, MoreHorizontal, 
-    Heart, Award, Lightbulb, FileText, Download, Check, ExternalLink, Hash
+    Heart, Award, Lightbulb, FileText, Download, Check, Hash
 } from 'lucide-react';
 
 const REACTION_CONFIG = {

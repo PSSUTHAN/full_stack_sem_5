@@ -10,7 +10,7 @@ const ProjectTrackerPage = () => {
         try {
             const saved = localStorage.getItem('user');
             return saved ? JSON.parse(saved) : null;
-        } catch (e) {
+        } catch {
             return null;
         }
     });

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
     LayoutList, Users, Hash, Bell, UserCheck, 
-    Search, Sparkles, Send, X, Check, MessageSquare, ClipboardList, Building2, MapPin, DollarSign, Clock
+    Send, X, Check
 } from 'lucide-react';
 import { communityService } from '../../services/communityService';
 import UserProfileCard from './UserProfileCard';

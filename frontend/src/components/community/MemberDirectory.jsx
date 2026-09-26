@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, UserPlus, Check, Users, Briefcase, MapPin, ExternalLink, ClipboardList } from 'lucide-react';
+import { Search, UserPlus, Check, Users, MapPin, ClipboardList } from 'lucide-react';
 
 const ROLE_FILTERS = [
     { label: 'All Members', value: 'all' },

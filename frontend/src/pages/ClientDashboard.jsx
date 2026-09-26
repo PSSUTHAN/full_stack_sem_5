@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
     User, LogOut, FileText, ArrowRight, ShieldCheck, 
-    HardHat, Calendar, MapPin, Sparkles, Activity, CheckCircle,
-    Plus, ClipboardList, Building2, DollarSign
+    HardHat, MapPin, Activity,
+    Plus, ClipboardList
 } from 'lucide-react';
 import ProjectTracker from '../components/ProjectTracker';
 import { communityService } from '../services/communityService';
 import SiteRequestModal from '../components/community/SiteRequestModal';
+import { authFetch } from '../services/apiClient';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -46,10 +47,10 @@ const ClientDashboard = () => {
     }, [user, navigate]);
 
     // Fetch projects connected to this client
-    const fetchClientProjects = async () => {
+    const fetchClientProjects = useCallback(async () => {
         try {
             setLoading(true);
-            const res = await fetch(`${API_BASE}/api/projects?user_id=${user?.id}&role=client`);
+            const res = await authFetch(`${API_BASE}/api/projects?user_id=${user?.id}&role=client`);
             if (res.ok) {
                 const data = await res.json();
                 setProjects(data.projects || []);
@@ -59,10 +60,10 @@ const ClientDashboard = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user]);
 
     // Load client contractor requests & available contractors
-    const loadRequestsAndContractors = async () => {
+    const loadRequestsAndContractors = useCallback(async () => {
         try {
             const [reqs, members] = await Promise.all([
                 communityService.fetchSiteRequests(),
@@ -85,14 +86,14 @@ const ClientDashboard = () => {
         } catch (err) {
             console.error("Error loading contractor requests:", err);
         }
-    };
+    }, [user]);
 
     useEffect(() => {
         if (user) {
             fetchClientProjects();
             loadRequestsAndContractors();
         }
-    }, [user]);
+    }, [user, fetchClientProjects, loadRequestsAndContractors]);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -216,7 +217,7 @@ const ClientDashboard = () => {
                                                         <div className="truncate">
                                                             <span className="text-[10px] uppercase font-bold text-gray-500 block">General Contractor</span>
                                                             <span className="font-semibold text-gray-800 truncate block">
-                                                                {project.contractor_email || 'contractor@engineersveedu.com'}
+                                                                {project.contractor_email || 'Not Assigned'}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -225,7 +226,7 @@ const ClientDashboard = () => {
                                                         <div className="truncate">
                                                             <span className="text-[10px] uppercase font-bold text-gray-500 block">Site Engineer</span>
                                                             <span className="font-semibold text-amber-700 truncate block">
-                                                                {project.site_engineer_email || 'engineer@engineersveedu.com'}
+                                                                {project.site_engineer_email || 'Not Assigned'}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -372,44 +373,6 @@ const ClientDashboard = () => {
                             )}
                         </div>
 
-                        {/* Transparency & AI Feature Highlights */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4">
-                                <div className="p-3 bg-orange-50 text-accent rounded-xl shrink-0">
-                                    <Calendar size={24} />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-primary text-base">Day-by-Day Site Diary</h4>
-                                    <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                                        Your site engineer posts real-time daily work logs, labor counts, material consumption, and on-site photos.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4">
-                                <div className="p-3 bg-purple-50 text-purple-600 rounded-xl shrink-0">
-                                    <Sparkles size={24} />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-primary text-base">Gemini AI Project Auditing</h4>
-                                    <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                                        Automated analysis checks pace vs target deadlines, flags weather/supply bottlenecks, and generates efficiency insights.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4">
-                                <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl shrink-0">
-                                    <ShieldCheck size={24} />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-primary text-base">Full Stakeholder Sync</h4>
-                                    <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                                        Client, General Contractor, and Site Engineer stay 100% aligned with zero communication gaps.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
                     </>
                 )}
             </div>

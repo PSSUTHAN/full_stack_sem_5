@@ -1,16 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
-    Calendar, Clock, CheckCircle2, AlertTriangle, Users, HardHat, 
+    Calendar, CheckCircle2, AlertTriangle, Users, HardHat, 
     Layers, Sparkles, Plus, Trash2, ArrowLeft, RefreshCw, 
-    ChevronRight, MapPin, DollarSign, CloudSun, ShieldCheck, 
-    FileText, UserCheck, X, Image as ImageIcon, Printer, 
-    ClipboardCheck, Hammer, Activity, Wrench, Check, Filter,
+    MapPin, DollarSign, CloudSun, ShieldCheck, 
+    FileText, X, Image as ImageIcon, Printer, 
+    ClipboardCheck, Hammer, Wrench, Check, Filter,
     UploadCloud
 } from 'lucide-react';
 
+import { authFetch } from '../services/apiClient';
+
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-export const formatImageUrl = (url) => {
+const formatImageUrl = (url) => {
     if (!url) return '';
     if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
         return url;
@@ -91,13 +93,13 @@ const ProjectTracker = ({ projectId, user, onBack }) => {
     const canPostUpdates = isSiteEngineer || isContractor;
 
     // Fetch project details, daily logs, and components WBS
-    const fetchProjectData = async () => {
+    const fetchProjectData = useCallback(async () => {
         try {
             setLoading(true);
             const [pRes, logsRes, compRes] = await Promise.all([
-                fetch(`${API_BASE}/api/projects/${projectId}`),
-                fetch(`${API_BASE}/api/projects/${projectId}/daily-logs`),
-                fetch(`${API_BASE}/api/projects/${projectId}/components`)
+                authFetch(`${API_BASE}/api/projects/${projectId}`),
+                authFetch(`${API_BASE}/api/projects/${projectId}/daily-logs`),
+                authFetch(`${API_BASE}/api/projects/${projectId}/components`)
             ]);
 
             if (pRes.ok) {
@@ -122,13 +124,13 @@ const ProjectTracker = ({ projectId, user, onBack }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [projectId]);
 
     // Fetch AI efficiency analysis
-    const fetchAnalysis = async () => {
+    const fetchAnalysis = useCallback(async () => {
         try {
             setAnalysisLoading(true);
-            const res = await fetch(`${API_BASE}/api/projects/${projectId}/analysis`);
+            const res = await authFetch(`${API_BASE}/api/projects/${projectId}/analysis`);
             if (res.ok) {
                 const data = await res.json();
                 setAnalysis(data);
@@ -138,14 +140,14 @@ const ProjectTracker = ({ projectId, user, onBack }) => {
         } finally {
             setAnalysisLoading(false);
         }
-    };
+    }, [projectId]);
 
     useEffect(() => {
         if (projectId) {
             fetchProjectData();
             fetchAnalysis();
         }
-    }, [projectId]);
+    }, [projectId, fetchProjectData, fetchAnalysis]);
 
     const handleCreateDailyLog = async (e) => {
         e.preventDefault();
@@ -192,7 +194,7 @@ const ProjectTracker = ({ projectId, user, onBack }) => {
             if (imageFile) {
                 const formData = new FormData();
                 formData.append('file', imageFile);
-                const uploadRes = await fetch(`${API_BASE}/api/upload`, {
+                const uploadRes = await authFetch(`${API_BASE}/api/upload`, {
                     method: 'POST',
                     body: formData
                 });
@@ -207,7 +209,7 @@ const ProjectTracker = ({ projectId, user, onBack }) => {
                 }
             }
 
-            const res = await fetch(`${API_BASE}/api/projects/${projectId}/daily-logs`, {
+            const res = await authFetch(`${API_BASE}/api/projects/${projectId}/daily-logs`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -272,7 +274,7 @@ const ProjectTracker = ({ projectId, user, onBack }) => {
     const handleDeleteLog = async (logId) => {
         if (!window.confirm("Are you sure you want to delete this daily update?")) return;
         try {
-            const res = await fetch(`${API_BASE}/api/projects/${projectId}/daily-logs/${logId}`, {
+            const res = await authFetch(`${API_BASE}/api/projects/${projectId}/daily-logs/${logId}`, {
                 method: 'DELETE'
             });
             if (res.ok) {

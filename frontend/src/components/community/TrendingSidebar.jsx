@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, ShieldCheck, ExternalLink, UserPlus, Info, Check } from 'lucide-react';
+import { TrendingUp, ShieldCheck, UserPlus, Info, Check } from 'lucide-react';
 
 const TRENDING_TOPICS = [
     {

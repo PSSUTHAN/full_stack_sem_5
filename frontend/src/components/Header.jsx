@@ -7,11 +7,18 @@ const Header = ({ user }) => {
     const triggerStateChange = () => {
         window.dispatchEvent(new Event('user-state-change'));
     };
+    const dashboardPath = user
+        ? user.role === 'site_engineer'
+            ? '/engineer-dashboard'
+            : (user.role === 'contractor' || user.role === 'builder')
+            ? '/contractor-dashboard'
+            : '/client-dashboard'
+        : '/login';
 
     return (
         <header className="bg-white sticky top-0 z-50 shadow-sm py-4">
             <div className="container mx-auto px-4 flex justify-between items-center">
-                <Link to={user ? "/community" : "/login"} className="text-2xl font-bold text-primary hover:opacity-90 transition-opacity">
+                <Link to={dashboardPath} className="text-2xl font-bold text-primary hover:opacity-90 transition-opacity">
                     Engineers Veedu
                 </Link>
 

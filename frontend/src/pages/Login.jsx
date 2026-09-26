@@ -11,19 +11,27 @@ const Login = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
+    const getDashboardPath = (userRole) => {
+        if (userRole === 'contractor' || userRole === 'builder') {
+            return '/contractor-dashboard';
+        } else if (userRole === 'site_engineer') {
+            return '/engineer-dashboard';
+        }
+        return '/client-dashboard';
+    };
+
     useEffect(() => {
         const saved = localStorage.getItem('user');
         if (saved) {
-            navigate('/community');
+            try {
+                const parsed = JSON.parse(saved);
+                navigate(getDashboardPath(parsed.role));
+            } catch {
+                navigate('/client-dashboard');
+            }
         }
     }, [navigate]);
 
-    const handleQuickFill = (targetRole, demoUser, demoPass) => {
-        setRole(targetRole);
-        setUsername(demoUser);
-        setPassword(demoPass);
-        setError('');
-    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -55,22 +63,13 @@ const Login = () => {
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('user', JSON.stringify(data.user));
                 window.dispatchEvent(new Event('user-state-change'));
-                navigate('/community');
+                navigate(getDashboardPath(data.user?.role || role));
             } else {
                 setError(data.error || 'Invalid username or password');
             }
         } catch (err) {
-            console.error("Login demo catch-all:", err);
-            // Strict Demo Mode based on selected role
-            localStorage.setItem('token', 'demo-token');
-            const demoUser = {
-                email: username.includes('@') ? username : `${username}@demo.com`,
-                id: 'demo-user',
-                role: role
-            };
-            localStorage.setItem('user', JSON.stringify(demoUser));
-            window.dispatchEvent(new Event('user-state-change'));
-            navigate('/community');
+            console.error("Login error:", err);
+            setError('Unable to connect to the server. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -189,35 +188,7 @@ const Login = () => {
                         </button>
                     </div>
 
-                    {/* Quick-fill Demo Accounts Helper */}
-                    <div className="pt-4 mt-4 border-t border-gray-100">
-                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-                            Quick-Fill Demo Credentials:
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                            <button
-                                type="button"
-                                onClick={() => handleQuickFill('client', 'client@demo.com', 'password123')}
-                                className="text-xs px-2.5 py-1 bg-gray-100 hover:bg-blue-50 text-gray-700 hover:text-blue-700 rounded border border-gray-200 transition-colors"
-                            >
-                                Client Demo
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => handleQuickFill('contractor', 'contractor@engineersveedu.com', 'password123')}
-                                className="text-xs px-2.5 py-1 bg-gray-100 hover:bg-blue-50 text-gray-700 hover:text-blue-700 rounded border border-gray-200 transition-colors"
-                            >
-                                Contractor Demo
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => handleQuickFill('site_engineer', 'engineer@engineersveedu.com', 'password123')}
-                                className="text-xs px-2.5 py-1 bg-gray-100 hover:bg-blue-50 text-gray-700 hover:text-blue-700 rounded border border-gray-200 transition-colors"
-                            >
-                                Site Engineer Demo
-                            </button>
-                        </div>
-                    </div>
+
                 </form>
 
                 {/* Footer Sign Up Link */}

@@ -12,9 +12,9 @@ const Community = () => {
                 // Map stored app user to community format
                 setCurrentUser({
                     id: parsed.id ? `user-${parsed.id}` : 'current-user',
-                    name: parsed.username || parsed.email?.split('@')[0] || 'Er. Construction Peer',
-                    email: parsed.email || 'engineer@engineersveedu.com',
-                    role: parsed.role === 'builder' ? 'contractor' : parsed.role || 'site_engineer',
+                    name: parsed.name || parsed.username || parsed.email?.split('@')[0] || 'User',
+                    email: parsed.email || '',
+                    role: parsed.role === 'builder' ? 'contractor' : parsed.role || 'client',
                     headline: parsed.role === 'site_engineer'
                         ? 'Site Operations & Structural Quality Auditor | Engineers Veedu'
                         : parsed.role === 'builder' || parsed.role === 'contractor'

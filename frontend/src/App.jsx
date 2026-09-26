@@ -11,7 +11,6 @@ import Support from './pages/Support';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ClientDashboard from './pages/ClientDashboard';
-import BuilderDashboard from './pages/BuilderDashboard';
 import ContractorDashboard from './pages/ContractorDashboard';
 import SiteEngineerDashboard from './pages/SiteEngineerDashboard';
 import ProjectTrackerPage from './pages/ProjectTrackerPage';
@@ -44,6 +43,13 @@ function App() {
         return () => window.removeEventListener('user-state-change', loadUser);
     }, []);
 
+    const getRoleDashboard = (u) => {
+        if (!u) return '/login';
+        if (u.role === 'contractor' || u.role === 'builder') return '/contractor-dashboard';
+        if (u.role === 'site_engineer') return '/engineer-dashboard';
+        return '/client-dashboard';
+    };
+
     return (
         <Router>
             <div className="flex flex-col min-h-screen bg-white text-gray-800">
@@ -51,14 +57,13 @@ function App() {
 
                 <main className="flex-grow">
                     <Routes>
-                        {/* Initial Launch: Go to Login first; if already authenticated, go to Community */}
                         <Route 
                             path="/" 
-                            element={user ? <Navigate to="/community" replace /> : <Navigate to="/login" replace />} 
+                            element={<Navigate to={user ? getRoleDashboard(user) : "/login"} replace />} 
                         />
                         <Route 
                             path="/login" 
-                            element={user ? <Navigate to="/community" replace /> : <Login />} 
+                            element={user ? <Navigate to={getRoleDashboard(user)} replace /> : <Login />} 
                         />
                         <Route path="/register" element={<Register />} />
 
@@ -124,10 +129,9 @@ function App() {
                             }
                         />
 
-                        {/* Fallback route: redirect to Community if logged in, or Login */}
                         <Route
                             path="*"
-                            element={user ? <Navigate to="/community" replace /> : <Navigate to="/login" replace />}
+                            element={<Navigate to={user ? getRoleDashboard(user) : "/login"} replace />}
                         />
                     </Routes>
                 </main>

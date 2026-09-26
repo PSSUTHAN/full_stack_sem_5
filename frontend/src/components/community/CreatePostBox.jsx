@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Image, FileText, Video, Send, X, Hash, Sparkles } from 'lucide-react';
+import { Image, FileText, Video, Send, X } from 'lucide-react';
 
 const CreatePostBox = ({ user, spaces = [], activeSpace, onPostCreated }) => {
     const [isExpanded, setIsExpanded] = useState(false);

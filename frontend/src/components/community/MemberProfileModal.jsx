@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, MapPin, Briefcase, Users, Check, UserPlus, Send, Award, Calendar, ExternalLink, ClipboardList } from 'lucide-react';
+import { X, MapPin, Briefcase, Users, Check, UserPlus, Send, Award, Calendar, ClipboardList } from 'lucide-react';
 
 const MemberProfileModal = ({ member, onClose, onConnect, onSendMessage, onRequestEngineer }) => {
     if (!member) return null;
